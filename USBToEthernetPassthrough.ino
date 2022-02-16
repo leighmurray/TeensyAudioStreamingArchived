@@ -55,7 +55,6 @@ void handleOutputBuffer(){
 
 void setup() {
   Serial.begin(115200);
-  while(!Serial);
   
   AudioMemory(60);
   sgtl5000_1.enable();
@@ -64,7 +63,7 @@ void setup() {
   startInputBuffer();
 }
 
-void loop() {
+void handleUSBVolume(){
   // read the PC's volume setting
   float vol = usb1.volume();
 
@@ -74,14 +73,18 @@ void loop() {
     // scale 0 = 1.0 range to:
     //  0.3 = almost silent
     //  0.8 = really loud
-    vol = 0.3 + vol * 0.3;
+    vol = 0.3 + vol * 0.5;
   }
 
   // use the scaled volume setting.  Delete this for fixed volume.
   sgtl5000_1.volume(vol);
+}
+
+void loop() {
+  handleUSBVolume();
+  
   //Serial.println("Checking Buffer...");
-  bool hasInputBuffer = handleInputBuffer();
-  if (hasInputBuffer == true){
+  if (handleInputBuffer() == true){
     handleOutputBuffer();
   }
   //Serial.println("Done Checking Buffer!");
