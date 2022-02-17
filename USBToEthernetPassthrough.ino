@@ -9,6 +9,9 @@
 NetworkManager networkManager;
 AudioManager audioManager;
 
+void handleRemoteAudio();
+void handleLocalAudio();
+
 void setup() {
   Serial.begin(115200);
   networkManager.Setup();
@@ -16,25 +19,25 @@ void setup() {
 }
 
 void loop() {
+  handleLocalAudio();
+  handleRemoteAudio();
+}
 
-  // get audio buffer
-  if (!isServer){
-    byte inputAudioBufferLeft[256];
-    byte inputAudioBufferRight[256];
-    bool hasLocalAudioBuffers = audioManager.getInputAudioBuffers(inputAudioBufferLeft, inputAudioBufferRight);
-    
-    // if there is an audio buffer send it to the other device
-    if (hasLocalAudioBuffers){
-      networkManager.sendAudioBuffers(inputAudioBufferLeft, inputAudioBufferRight);
-    }
-  } else {
-    byte outputAudioBufferLeft[256];
-    byte outputAudioBufferRight[256];
-    if (networkManager.receiveAudioBuffers(outputAudioBufferLeft, outputAudioBufferRight)){
-      audioManager.setOutputAudioBuffers(outputAudioBufferLeft, outputAudioBufferRight);
-    }
+void handleLocalAudio(){
+  byte inputAudioBufferLeft[256];
+  byte inputAudioBufferRight[256];
+  bool hasLocalAudioBuffers = audioManager.getInputAudioBuffers(inputAudioBufferLeft, inputAudioBufferRight);
+  
+  // if there is an audio buffer send it to the other device
+  if (hasLocalAudioBuffers){
+    networkManager.sendAudioBuffers(inputAudioBufferLeft, inputAudioBufferRight);
   }
+}
 
-  //Serial.println("Done Checking Buffer!");
-  delay(1);
+void handleRemoteAudio(){
+  byte outputAudioBufferLeft[256];
+  byte outputAudioBufferRight[256];
+  if (networkManager.receiveAudioBuffers(outputAudioBufferLeft, outputAudioBufferRight)){
+    audioManager.setOutputAudioBuffers(outputAudioBufferLeft, outputAudioBufferRight);
+  }
 }

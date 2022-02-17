@@ -21,7 +21,6 @@ uint8_t macAddressUSBHeader[6] = {0x04, 0xe9, 0xe5, 0x0c, 0xec, 0x21};
 uint8_t macAddressNoUSBHeader[6] = {0x04, 0xe9, 0xe5, 0x11, 0x22, 0x7c};
 uint8_t* serverMacAddress = macAddressUSBHeader;
 uint8_t* clientMacAddress = macAddressNoUSBHeader;
-bool isServer;
 
 class NetworkManager{
 public:
@@ -31,10 +30,6 @@ public:
     Ethernet.macAddress(mac);
     Serial.printf("MAC = %02x:%02x:%02x:%02x:%02x:%02x\n",
                   mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-
-    isServer = macAddressMatches(serverMacAddress, mac);
-    Serial.print("Is Server:");
-    Serial.println(isServer);
     
     // Initialize Ethernet, in this case with DHCP
     Serial.println("Starting Ethernet with DHCP...");
@@ -58,37 +53,48 @@ public:
     ip = Ethernet.dnsServerIP();
     Serial.printf("    DNS          = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
 
-    if (isServer){
-      // Listen on port and start an mDNS service
-      udp.begin(kAudioPort);
-      Serial.println("Starting mDNS...");
-      if (!MDNS.begin(kServiceName)) {
-        Serial.println("ERROR: Starting mDNS.");
+
+    // Listen on port and start an mDNS service
+    udp.begin(kAudioPort);
+    Serial.println("Starting mDNS...");
+    if (!MDNS.begin(kServiceName)) {
+      Serial.println("ERROR: Starting mDNS.");
+    } else {
+      if (!MDNS.addService("_tas", "_udp", kAudioPort)) {
+        Serial.println("ERROR: Adding service.");
       } else {
-        if (!MDNS.addService("_tas", "_udp", kAudioPort)) {
-          Serial.println("ERROR: Adding service.");
-        } else {
-          Serial.printf("Started mDNS service:\n"
-                        "    Name: %s\n"
-                        "    Type: _tas._udp\n"
-                        "    Port: %u\n",
-                        kServiceName, kAudioPort);
-        }
+        Serial.printf("Started mDNS service:\n"
+                      "    Name: %s\n"
+                      "    Type: _tas._udp\n"
+                      "    Port: %u\n",
+                      kServiceName, kAudioPort);
       }
-      Serial.println("Waiting for TAS messages...");
     }
-    
-    if (!isServer){
-      Serial.println("Please give me the server IP address:");
-      
+    Serial.println("Waiting for TAS messages...");
+
+    bool initialised = false;
+
+    // TODO: tidy this up please
+    while (!initialised) {
+      Serial.println("Please give me the remote IP address:");
       while(!Serial.available()){
+        if (udp.parsePacket()){
+          remoteNodeIP = udp.remoteIP();
+          Serial.print("Nevermind, we have incoming data from: ");
+          Serial.println(remoteNodeIP);
+          return;
+        }
         delay(1000);
       }
       String ipString = Serial.readStringUntil('\n');
       Serial.println(ipString);
-      remoteNodeIP.fromString(ipString);
-      Serial.print("Thankyou. IP is:");
-      Serial.println(remoteNodeIP);
+      initialised = remoteNodeIP.fromString(ipString);
+      if (!initialised){
+        Serial.println("Invalid IP address.");
+      } else {
+        Serial.print("Thankyou. Remote IP is:");
+        Serial.println(remoteNodeIP);
+      }
     }
   }
 
@@ -99,7 +105,7 @@ public:
     return udp.send(remoteNodeIP,  kAudioPort, audioPacket, 512);
   }
 
-  bool receiveAudioBuffers(byte outputAudioBufferLeft[256],byte outputAudioBufferRight[256]){
+  bool receiveAudioBuffers(byte outputAudioBufferLeft[256], byte outputAudioBufferRight[256]){
     int size = udp.parsePacket();
     if (0 < size && size <= sizeof(buf)) {
       udp.read(buf, size);

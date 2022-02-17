@@ -1,7 +1,6 @@
 #ifndef AUDIO_MANAGER_H
 #define AUDIO_MANAGER_H
 
-
 // GUItool: begin automatically generated code
 AudioInputUSB            usb1;           //xy=244.00000762939453,177.00000476837158
 AudioRecordQueue         bufferUSBLeft;         //xy=409.0000686645508,152.00009536743164
@@ -28,10 +27,9 @@ public:
     startInputBuffer();
   }
   
-  bool getInputAudioBuffers(byte localAudioBufferLeft[256],byte localAudioBufferRight[256]){
+  bool getInputAudioBuffers(byte localAudioBufferLeft[256], byte localAudioBufferRight[256]){
     if (bufferUSBLeft.available() >= 1 && bufferUSBRight.available() >= 1) {
       // Fetch 1 blocks from the audio library
-
       memcpy(localAudioBufferLeft, bufferUSBLeft.readBuffer(), 256);
       bufferUSBLeft.freeBuffer();
       
