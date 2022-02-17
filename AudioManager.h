@@ -16,74 +16,80 @@ AudioConnection          patchCord4(i2sBufferLeft, 0, i2s1, 0);
 AudioControlSGTL5000     sgtl5000_1;     //xy=204.00000762939453,317.00000762939453
 // GUItool: end automatically generated code
 
-byte inputBufferLeft[256];
-byte inputBufferRight[256];
-
-void startInputBuffer(){
-  Serial.println("Begin Buffer");
-  bufferUSBLeft.begin();
-  bufferUSBRight.begin();
-}
-
-bool handleInputBuffer(){
-  //Serial.print("Available buffer:");
-  //Serial.println(bufferUSBLeft.available());
-  if (bufferUSBLeft.available() >= 1 && bufferUSBRight.available() >= 1) {
-    // Fetch 1 blocks from the audio library
-    memcpy(inputBufferLeft, bufferUSBLeft.readBuffer(), 256);
-    bufferUSBLeft.freeBuffer();
-
-    memcpy(inputBufferRight, bufferUSBRight.readBuffer(), 256);
-    bufferUSBRight.freeBuffer();
+class AudioManager{
+  byte inputBufferLeft[256];
+  byte inputBufferRight[256];
+  
+public:
+  void Setup(){
+    AudioMemory(60);
+    sgtl5000_1.enable();
+    // max without clipping from headphone output is 0.7
+    sgtl5000_1.volume(0.7);
     
-    //for (int i = 0; i<sizeof(buffer); i++) Serial.print(buffer[i], HEX);
-    //Serial.println("Handled Buffer");
-    return true;
-  } else {
-    return false;
+    startInputBuffer();
   }
-}
-
-void handleOutputBuffer(){
-  memcpy(i2sBufferLeft.getBuffer(), inputBufferLeft, 256);
-  memcpy(i2sBufferRight.getBuffer(), inputBufferRight, 256);
-  i2sBufferLeft.playBuffer();
-  i2sBufferRight.playBuffer();
-}
-
-
-void handleUSBVolume(){
-  NetworkManagerLoop();
-  // read the PC's volume setting
-  float vol = usb1.volume();
-
-  // scale to a nice range (not too loud)
-  // and adjust the audio shield output volume
-  if (vol > 0) {
-    // scale 0 = 1.0 range to:
-    //  0.3 = almost silent
-    //  0.8 = really loud
-    vol = 0.3 + vol * 0.5;
-  }
-
-  // use the scaled volume setting.  Delete this for fixed volume.
-  sgtl5000_1.volume(vol);
-}
-
-void AudioManagerSetup(){
-  AudioMemory(60);
-  sgtl5000_1.enable();
-  sgtl5000_1.volume(0.6);
   
-  startInputBuffer();
-}
-
-void AudioManagerLoop(){
-  handleUSBVolume();
-  
-  //Serial.println("Checking Buffer...");
-  if (handleInputBuffer() == true){
-    handleOutputBuffer();
+  void Loop(){
+    handleUSBVolume();
+    
+    //Serial.println("Checking Buffer...");
+    if (handleInputBuffer() == true){
+      handleOutputBuffer();
+    }
   }
-}
+
+
+private:
+  void startInputBuffer(){
+    Serial.println("Begin Buffer");
+    bufferUSBLeft.begin();
+    bufferUSBRight.begin();
+  }
+  
+  bool handleInputBuffer(){
+    //Serial.print("Available buffer:");
+    //Serial.println(bufferUSBLeft.available());
+    if (bufferUSBLeft.available() >= 1 && bufferUSBRight.available() >= 1) {
+      // Fetch 1 blocks from the audio library
+      memcpy(inputBufferLeft, bufferUSBLeft.readBuffer(), 256);
+      bufferUSBLeft.freeBuffer();
+  
+      memcpy(inputBufferRight, bufferUSBRight.readBuffer(), 256);
+      bufferUSBRight.freeBuffer();
+      
+      //for (int i = 0; i<sizeof(buffer); i++) Serial.print(buffer[i], HEX);
+      //Serial.println("Handled Buffer");
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  void handleOutputBuffer(){
+    memcpy(i2sBufferLeft.getBuffer(), inputBufferLeft, 256);
+    memcpy(i2sBufferRight.getBuffer(), inputBufferRight, 256);
+    i2sBufferLeft.playBuffer();
+    i2sBufferRight.playBuffer();
+  }
+  
+  void handleUSBVolume(){
+//    // read the PC's volume setting
+//    float vol = usb1.volume();
+//  
+//    // scale to a nice range (not too loud)
+//    // and adjust the audio shield output volume
+//    if (vol > 0) {
+//      // scale 0 = 1.0 range to:
+//      //  0.3 = almost silent
+//      //  0.8 = really loud
+//      vol = 0.3 + vol * 0.5;
+//    }
+//  
+//    // use the scaled volume setting.  Delete this for fixed volume.
+//    sgtl5000_1.volume(vol);
+  }
+
+};
+
 #endif

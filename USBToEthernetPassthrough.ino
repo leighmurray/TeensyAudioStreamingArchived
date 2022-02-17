@@ -6,16 +6,19 @@
 #include "NetworkManager.h"
 #include "AudioManager.h"
 
+NetworkManager networkManager;
+AudioManager audioManager;
+
 void setup() {
   Serial.begin(115200);
-  NetworkManagerSetup();
-  AudioManagerSetup();
+  networkManager.Setup();
+  //audioManager.Setup();
 }
 
 void loop() {
-  AudioManagerLoop();
-  NetworkManagerLoop();
+  //audioManager.Loop();
+  networkManager.Loop();
   
   //Serial.println("Done Checking Buffer!");
-  delay(2);
+  delay(1000);
 }
