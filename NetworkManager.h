@@ -90,22 +90,26 @@ public:
       Serial.print("Thankyou. IP is:");
       Serial.println(remoteNodeIP);
     }
-    
   }
 
-  void Loop(){    
+  bool sendAudioBuffers(byte audioBufferLeft[256], byte audioBufferRight[256]){
+    byte audioPacket[512];
+    memcpy(audioPacket, audioBufferLeft, 256);
+    memcpy(&audioPacket[256], audioBufferRight, 256);
+    return udp.send(remoteNodeIP,  kAudioPort, audioPacket, 512);
+  }
+
+  bool receiveAudioBuffers(byte outputAudioBufferLeft[256],byte outputAudioBufferRight[256]){
     int size = udp.parsePacket();
     if (0 < size && size <= sizeof(buf)) {
       udp.read(buf, size);
-      Serial.println("UDP Contents:");
-      Serial.println((char *) buf);
+      memcpy(outputAudioBufferLeft, buf, 256);
+      memcpy(outputAudioBufferRight, &buf[256], 256);
+      return true;
     }
-    if (!isServer){
-      Serial.println("Sending message");
-      char messageBuffer[] = "hello server\n"; 
-      udp.send(remoteNodeIP,  kAudioPort, messageBuffer, sizeof(messageBuffer));
-    }
+    return false;
   }
+
 
 private:
   bool macAddressMatches(uint8_t* firstMac, uint8_t* secondMac){
@@ -113,7 +117,6 @@ private:
   }
 
   IPAddress remoteNodeIP;
-  
 };
 
 #endif

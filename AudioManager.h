@@ -17,8 +17,6 @@ AudioControlSGTL5000     sgtl5000_1;     //xy=204.00000762939453,317.00000762939
 // GUItool: end automatically generated code
 
 class AudioManager{
-  byte inputBufferLeft[256];
-  byte inputBufferRight[256];
   
 public:
   void Setup(){
@@ -30,47 +28,35 @@ public:
     startInputBuffer();
   }
   
-  void Loop(){
-    handleUSBVolume();
-    
-    //Serial.println("Checking Buffer...");
-    if (handleInputBuffer() == true){
-      handleOutputBuffer();
+  bool getInputAudioBuffers(byte localAudioBufferLeft[256],byte localAudioBufferRight[256]){
+    if (bufferUSBLeft.available() >= 1 && bufferUSBRight.available() >= 1) {
+      // Fetch 1 blocks from the audio library
+
+      memcpy(localAudioBufferLeft, bufferUSBLeft.readBuffer(), 256);
+      bufferUSBLeft.freeBuffer();
+      
+      memcpy(localAudioBufferRight, bufferUSBRight.readBuffer(), 256);
+      bufferUSBRight.freeBuffer();
+
+      return true;
+    } else {
+      return false;
     }
   }
 
+  bool setOutputAudioBuffers(byte outputAudioBufferLeft[256],byte outputAudioBufferRight[256]){
+    memcpy(i2sBufferLeft.getBuffer(), outputAudioBufferLeft, 256);
+    memcpy(i2sBufferRight.getBuffer(), outputAudioBufferRight, 256);
+    i2sBufferLeft.playBuffer();
+    i2sBufferRight.playBuffer();
+    return true;
+  }
 
 private:
   void startInputBuffer(){
     Serial.println("Begin Buffer");
     bufferUSBLeft.begin();
     bufferUSBRight.begin();
-  }
-  
-  bool handleInputBuffer(){
-    //Serial.print("Available buffer:");
-    //Serial.println(bufferUSBLeft.available());
-    if (bufferUSBLeft.available() >= 1 && bufferUSBRight.available() >= 1) {
-      // Fetch 1 blocks from the audio library
-      memcpy(inputBufferLeft, bufferUSBLeft.readBuffer(), 256);
-      bufferUSBLeft.freeBuffer();
-  
-      memcpy(inputBufferRight, bufferUSBRight.readBuffer(), 256);
-      bufferUSBRight.freeBuffer();
-      
-      //for (int i = 0; i<sizeof(buffer); i++) Serial.print(buffer[i], HEX);
-      //Serial.println("Handled Buffer");
-      return true;
-    } else {
-      return false;
-    }
-  }
-  
-  void handleOutputBuffer(){
-    memcpy(i2sBufferLeft.getBuffer(), inputBufferLeft, 256);
-    memcpy(i2sBufferRight.getBuffer(), inputBufferRight, 256);
-    i2sBufferLeft.playBuffer();
-    i2sBufferRight.playBuffer();
   }
   
   void handleUSBVolume(){
