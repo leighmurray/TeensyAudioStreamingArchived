@@ -47,6 +47,8 @@ public:
 //    activeInputBufferRight = &inputBufferUSBRight;
     activeInputBufferLeft = &inputBufferI2SLeft;
     activeInputBufferRight = &inputBufferI2SRight;
+    activeOutputBufferLeft = &outputBufferI2SLeft;
+    activeOutputBufferRight = &outputBufferI2SRight;
     startInputBuffer();
   }
   
@@ -66,10 +68,10 @@ public:
   }
 
   bool setOutputAudioBuffers(byte outputAudioBufferLeft[256], byte outputAudioBufferRight[256]){
-    memcpy(outputBufferI2SLeft.getBuffer(), outputAudioBufferLeft, 256);
-    memcpy(outputBufferI2SRight.getBuffer(), outputAudioBufferRight, 256);
-    outputBufferI2SLeft.playBuffer();
-    outputBufferI2SRight.playBuffer();
+    memcpy(activeOutputBufferLeft->getBuffer(), outputAudioBufferLeft, 256);
+    memcpy(activeOutputBufferRight->getBuffer(), outputAudioBufferRight, 256);
+    activeOutputBufferLeft->playBuffer();
+    activeOutputBufferRight->playBuffer();
     return true;
   }
 
