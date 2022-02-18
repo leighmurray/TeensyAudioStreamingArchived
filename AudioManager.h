@@ -47,8 +47,10 @@ public:
 //    activeInputBufferRight = &inputBufferUSBRight;
     activeInputBufferLeft = &inputBufferI2SLeft;
     activeInputBufferRight = &inputBufferI2SRight;
+    
     activeOutputBufferLeft = &outputBufferI2SLeft;
     activeOutputBufferRight = &outputBufferI2SRight;
+    
     startInputBuffer();
   }
   

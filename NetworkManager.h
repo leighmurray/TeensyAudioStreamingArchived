@@ -129,7 +129,7 @@ public:
   }
 
   bool receiveAudioBuffers(byte outputAudioBufferLeft[256], byte outputAudioBufferRight[256]){
-    int size = udp.parsePacket();
+    uint16_t size = udp.parsePacket();
     if (0 < size && size <= sizeof(buf)) {
       udp.read(buf, size);
       memcpy(outputAudioBufferLeft, buf, 256);
@@ -141,11 +141,8 @@ public:
 
 
 private:
-  bool macAddressMatches(uint8_t* firstMac, uint8_t* secondMac){
-    return (memcmp(firstMac, secondMac, sizeof(firstMac)) == 0);
-  }
-
   IPAddress remoteNodeIP;
+  
 };
 
 #endif
