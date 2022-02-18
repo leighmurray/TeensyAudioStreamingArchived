@@ -3,6 +3,8 @@
 
 #include <QNEthernet.h>
 #include <QNDNSClient.h>
+#include "StorageManager.h"
+
 using namespace qindesign::network;
 
 constexpr uint32_t kDHCPTimeout = 10000;  // 10 seconds
@@ -76,24 +78,45 @@ public:
 
     // TODO: tidy this up please
     while (!initialised) {
-      Serial.println("Please give me the remote IP address:");
-      while(!Serial.available()){
+      byte savedIP0;
+      byte savedIP1;
+      byte savedIP2;
+      byte savedIP3;
+      StorageManager::getRemoteIPAddress(&savedIP0, &savedIP1, &savedIP2, &savedIP3);
+      Serial.printf("Please give me the remote IP address or press enter to attempt %u.%u.%u.%u:\n", savedIP0, savedIP1, savedIP2, savedIP3);
+      uint8_t count = 10;
+      Serial.print("Auto-reconnect in: ");
+      while(!Serial.available() && count > 0){
         if (udp.parsePacket()){
           remoteNodeIP = udp.remoteIP();
           Serial.print("Nevermind, we have incoming data from: ");
           Serial.println(remoteNodeIP);
+          StorageManager::saveRemoteIPAddress(remoteNodeIP[0], remoteNodeIP[1], remoteNodeIP[2], remoteNodeIP[3]);
           return;
         }
+        Serial.printf("%u, ", count);
         delay(1000);
+        count--;
       }
       String ipString = Serial.readStringUntil('\n');
-      Serial.println(ipString);
-      initialised = remoteNodeIP.fromString(ipString);
+      if (!ipString.length()){
+        Serial.print("Setting remote to: ");
+        remoteNodeIP = IPAddress(savedIP0, savedIP1, savedIP2, savedIP3);
+        Serial.println(remoteNodeIP);
+        initialised = true;
+        // returning so that we dont "waste" a write to the EEPROM because it's limited.
+        return;
+      } else {
+        Serial.println(ipString);
+        initialised = remoteNodeIP.fromString(ipString);
+      }
+      
       if (!initialised){
         Serial.println("Invalid IP address.");
       } else {
         Serial.print("Thankyou. Remote IP is:");
         Serial.println(remoteNodeIP);
+        StorageManager::saveRemoteIPAddress(remoteNodeIP[0], remoteNodeIP[1], remoteNodeIP[2], remoteNodeIP[3]);
       }
     }
   }

@@ -65,7 +65,7 @@ public:
     }
   }
 
-  bool setOutputAudioBuffers(byte outputAudioBufferLeft[256],byte outputAudioBufferRight[256]){
+  bool setOutputAudioBuffers(byte outputAudioBufferLeft[256], byte outputAudioBufferRight[256]){
     memcpy(outputBufferI2SLeft.getBuffer(), outputAudioBufferLeft, 256);
     memcpy(outputBufferI2SRight.getBuffer(), outputAudioBufferRight, 256);
     outputBufferI2SLeft.playBuffer();
@@ -76,6 +76,8 @@ public:
 private:
   AudioRecordQueue* activeInputBufferLeft;
   AudioRecordQueue* activeInputBufferRight;
+  AudioPlayQueue* activeOutputBufferLeft;
+  AudioPlayQueue* activeOutputBufferRight; 
 
   void startInputBuffer(){
     Serial.println("Begin Buffer");
