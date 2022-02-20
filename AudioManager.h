@@ -43,10 +43,10 @@ public:
     // max without clipping from headphone output is 0.7
     sgtl5000_1.volume(0.7);
     
-//    activeInputBufferLeft = &inputBufferUSBLeft;
-//    activeInputBufferRight = &inputBufferUSBRight;
-    activeInputBufferLeft = &inputBufferI2SLeft;
-    activeInputBufferRight = &inputBufferI2SRight;
+    activeInputBufferLeft = &inputBufferUSBLeft;
+    activeInputBufferRight = &inputBufferUSBRight;
+//    activeInputBufferLeft = &inputBufferI2SLeft;
+//    activeInputBufferRight = &inputBufferI2SRight;
     
     activeOutputBufferLeft = &outputBufferI2SLeft;
     activeOutputBufferRight = &outputBufferI2SRight;
