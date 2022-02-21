@@ -8,7 +8,7 @@
 using namespace qindesign::network;
 
 constexpr uint32_t kDHCPTimeout = 10000;  // 10 seconds
-constexpr uint16_t kAudioPort = 8000;
+constexpr uint16_t kAudioPort = 4464;
 constexpr char kServiceName[] = "teensy-audio-streaming"; //tas
 
 EthernetUDP udp;
